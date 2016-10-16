@@ -1,0 +1,18 @@
+{% extends 'app_dubhack/base.html' %}
+{% block content %}
+<h2>Please Input your classes one at a time</h2>
+
+
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <li{% if message.userid %} class="{{ message.userid }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+<form action="" method="post">{% csrf_token %}
+{{ form.as_p }}
+<button class="btn btn-primary" type="submit">Sumbit</button>
+</form>
+{% endblock %}

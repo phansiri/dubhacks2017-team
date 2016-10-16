@@ -1,0 +1,10 @@
+{% extends 'app_dubhack/base.html' %}
+{% block content %}
+
+<h3>Hello you...</h3>
+
+{% for obj in objs %}
+{{ obj.quartername }}
+{% endfor %}
+
+{% endblock %}
