@@ -135,6 +135,72 @@ def openCSV(preReq_Map):
 
 
 
+def getAllPreReqs():
+    browser = mechanize.Browser()
+    response = browser.open('https://www.washington.edu/students/crscat/cse.html')
+    soup = BeautifulSoup(response.read())
+    aList = soup.findChildren('a')
 
-class_Map = getPrereqs()
-openCSV(class_Map)
+    class_Map = collections.OrderedDict()
+    classOptions = []
+    htmlText = ""
+
+    for a in aList:
+        className = ""
+        preReq_String = ""
+        if len(classOptions) > 0:
+            class_Map[htmlText.get('name')].append(classOptions)
+            classOptions = []
+        if a.get('name'):
+            class_Map[a.get('name')] = []
+            classDescription = str( a.findChild('p') )
+            if classDescription.find('Prerequisite') > 0:
+                classLetter_index = 0
+                if classDescription.find('Offered') > 0:
+                    preReq_String = classDescription[classDescription.find('Prerequisite'):classDescription.find('Offered')]
+                else:
+                    preReq_String = classDescription[classDescription.find('Prerequisite'):]
+                for index in range(len(preReq_String)):
+                    letter = preReq_String[index]
+                    if letter.isupper():
+                        if classLetter_index == 0:
+                            classLetter_index = index
+                            className += letter
+                        else:
+                            className += letter
+                    else:
+                        if classLetter_index != 0 and len(className) > 1:
+                            preReq_Class = className + preReq_String[index:index+5]
+                            if hasNumbers(preReq_Class):
+                                class_Map[a.get('name')].append(preReq_Class[:len(preReq_Class)-1])
+                            className = ""
+                            classLetter_index = 0
+                        elif classLetter_index != 0:
+                            className = ""
+                            classLetter_index = 0
+                        if classLetter_index == 0:
+                            className = ""
+        htmlText = a
+    return class_Map
+
+def getRelationships(preReq_Map):
+    reversePreReq_Map = collections.OrderedDict()
+    courseImportance_Map = {}
+
+    for basicClass in preReq_Map:
+        for preReq in preReq_Map[basicClass]:
+            if preReq not in reversePreReq_Map.keys():
+                reversePreReq_Map[preReq] = []
+            reversePreReq_Map[preReq].append(basicClass)
+
+    for preReq in reversePreReq_Map.keys():
+        courseImportance_Map[len(reversePreReq_Map[preReq])] = preReq
+    preReqImportance_List = list(reversed(collections.OrderedDict(sorted(courseImportance_Map.items()))))
+    for freq in preReqImportance_List:
+        print courseImportance_Map[freq]
+
+#class_Map = getPrereqs()
+#openCSV(class_Map)
+preReq_Map = getAllPreReqs()
+getRelationships(preReq_Map)
+
